@@ -1,0 +1,18 @@
+{
+    "name": "Ashish",
+    "email": "ashish@gmail.com",
+    "phone": "1234567890",
+    "password": "1055d5b4a8ef865282a02"
+}
+{
+    "name": "Ashish",
+    "email": "ashish1@gmail.com",
+    "phone": "1234567891",
+    "password": "$2b$10$eVNSgSUDZWFInLpOiUp2x.yUGZl7zrmH.1vyjken8yhNv1mBsdWme",=>c2dd7cdaa44e209c06c3c
+    "hashRt": null,
+    "id": 4,
+    "role": "viewer",
+    "active": true,
+    "created_at": "2023-10-01T14:02:10.214Z",
+    "updated_at": "2023-10-01T14:02:10.214Z"
+}
