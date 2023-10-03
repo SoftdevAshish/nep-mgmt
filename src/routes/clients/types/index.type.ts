@@ -1,6 +1,6 @@
 import { SystemTypes } from '../../enum/systemtypes.enum';
 
-export type CreateClientParam = {
+export type ClientParam = {
   clientName: string;
   clientContractDate: Date;
   clientExpiryDate: Date;

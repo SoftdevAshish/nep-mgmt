@@ -37,9 +37,15 @@ export class ClientController {
     return this.clientService.getById(id);
   }
 
+  @ApiOperation({ description: 'Update client details' })
   @Put(':id')
-  update() {}
+  update(@Param('id') id: number, @Body() clientDetails: CreateClientDto) {
+    return this.clientService.update(id, clientDetails);
+  }
 
+  @ApiOperation({ description: 'Delete client details' })
   @Delete(':id')
-  destroy() {}
+  destroy(@Param('id') id: number) {
+    this.clientService.destroy(id);
+  }
 }

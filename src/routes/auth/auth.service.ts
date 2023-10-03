@@ -3,10 +3,16 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserParams } from './types';
 import { genPassword } from '../../utils/genpass';
+import { MailService } from '../mail/mail.service';
+import { EmailService } from '../mail/email.service';
 
 @Injectable()
 export class AuthService {
-  constructor(@Inject('UserRepo') private userRepository: Repository<User>) {}
+  constructor(
+    @Inject('UserRepo') private userRepository: Repository<User>,
+    private mailService: MailService,
+    private emailService: EmailService,
+  ) {}
 
   login() {
     return 'Login';
@@ -24,8 +30,21 @@ export class AuthService {
         throw new HttpException('Please Enter Unique Email and Phone', 409);
       }
       const data = { ...userDetails, password: genPass };
-      return this.userRepository.save(this.userRepository.create(data));
-      return { users, data };
+
+      const creatUser = await this.userRepository.save(
+        this.userRepository.create(data),
+      );
+      if (Object.keys(creatUser).length > 1) {
+        const ctx = { name: creatUser.name, password: genPass };
+        // await this.emailService.sendMail(
+        //   creatUser.email,
+        //   'Test Password',
+        //   `Password:${genPass}`,
+        // );
+
+        await this.mailService.registerMail(creatUser.email, ctx);
+      }
+      return creatUser;
     } catch (e) {
       throw e;
     }

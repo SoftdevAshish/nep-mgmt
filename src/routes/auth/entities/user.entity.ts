@@ -14,6 +14,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 @Entity({ name: 'users' })
 export class User {
+  @Exclude()
   @PrimaryGeneratedColumn()
   id: number;
 

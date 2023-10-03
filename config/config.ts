@@ -19,3 +19,10 @@ export const swaggerTitle = process.env.API_TITLE;
 export const swaggerDescription = process.env.API_DESCRIPTION;
 export const swaggerVersion = process.env.API_VERSION;
 export const swaggerDocs = process.env.API_DOCS;
+
+//Mail
+export const emailHost = process.env.MAIL_HOST;
+export const emailPort = parseInt(process.env.MAIL_PORT);
+export const emailSecure = JSON.parse(process.env.MAIL_SECURE);
+export const emailUsername = process.env.MAIL_USERNAME;
+export const emailPassword = process.env.MAIL_PASSWORD;
