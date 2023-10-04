@@ -70,7 +70,6 @@ export class ClientService {
       const client = await this.getById(id);
       if (client) {
         const clientSlug = await this.getBySlug(clientDetails.slug);
-        console.log(clientSlug, 'Clientslug');
         if (clientSlug) {
           if (clientSlug.id !== client.id) {
             return errorMessage({
@@ -78,6 +77,10 @@ export class ClientService {
               field: 'Check Slug Value',
               status: 409,
             });
+          }
+          if (clientSlug.id === client.id) {
+            await this.clientRepository.update(id, clientDetails);
+            return await this.getById(id);
           }
         } else {
           await this.clientRepository.update(id, clientDetails);

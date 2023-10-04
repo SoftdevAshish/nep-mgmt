@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { DatabaseModule } from './commons/database/database.module';
 import { ClientsModule } from './routes/clients/clients.module';
 import { AuthModule } from './routes/auth/auth.module';
-import { MailService } from './routes/mail/mail.service';
 import { MailModule } from './routes/mail/mail.module';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { AccessGuard } from './commons/guards/access.guard';
 
 @Module({
   imports: [
@@ -18,7 +17,7 @@ import { ConfigModule } from '@nestjs/config';
       isGlobal: true,
     }),
   ],
-  controllers: [AppController],
-  providers: [AppService, MailService],
+  // controllers: [AppController],
+  providers: [{ provide: APP_GUARD, useClass: AccessGuard }],
 })
 export class AppModule {}

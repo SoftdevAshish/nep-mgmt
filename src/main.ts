@@ -9,9 +9,11 @@ import {
 } from '../config/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ResponseTransformInterceptor } from './interceptors/response.transform.interceptor';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.useGlobalPipes(new ValidationPipe());
   app.useGlobalInterceptors(new ResponseTransformInterceptor());
 
   app.enableCors();

@@ -6,6 +6,11 @@ import { MailService } from '../mail/mail.service';
 import { EmailService } from '../mail/email.service';
 import { genPassword } from '../../utils/passwordHash';
 import * as bcrypt from 'bcrypt';
+import { errorMessage, successMessage } from '../../utils/response';
+import { Tokens } from './types/token.types';
+import { JwtPayload } from './types/JwtPayload';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -13,6 +18,8 @@ export class AuthService {
     @Inject('UserRepo') private userRepository: Repository<User>,
     private mailService: MailService,
     private emailService: EmailService,
+    private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
   async login(loginDetils: loginUserParams) {
@@ -24,12 +31,18 @@ export class AuthService {
     if (email && password) {
       user = await this.checkUser({ email }, password);
       console.log('Email');
+      return successMessage({ message: 'Login Successful', data: user });
     }
     if (phone && password) {
       user = await this.checkUser({ phone }, password);
       console.log('Phone');
+      return successMessage({ message: 'Login Successful', data: user });
     }
-    return user;
+    return errorMessage({
+      reason: 'Username And Password Not Matcherd',
+      field: 'Check and Verify your Username And Password.',
+      status: 404,
+    });
   }
 
   async register(userDetails: CreateUserParams) {
@@ -55,11 +68,6 @@ export class AuthService {
           phone: creatUser.phone,
           password: genPass,
         };
-        // await this.emailService.sendMail(
-        //   creatUser.email,
-        //   'Test Password',
-        //   `Password:${genPass}`,
-        // );
         await this.emailService.sendMail(
           creatUser.email,
           'Account Created',
@@ -91,7 +99,6 @@ export class AuthService {
   }
 
   async checkUser(username: any, password: string) {
-    // let loginStatus;
     try {
       const user = await this.userRepository.findOne({
         where: [{ ...username }],
@@ -99,17 +106,59 @@ export class AuthService {
       if (user) {
         const isMatched = await bcrypt.compare(password, user.password);
         if (isMatched) {
-          return user;
-          //   } else {
-          //     throw new HttpException("Sorry Credential Not Match", 403);
-          //   }
-          // } else {
-          //   throw new HttpException("Sorry Credential Not Match", 403);
+          const tokenGen = await this.getToken({
+            userId: user.id,
+            email: user.email,
+            roles: user.role,
+          });
+          await this.updateHashRefresh(user.id, tokenGen.refresh_token);
+          return { user, tokenGen };
+        } else {
+          return errorMessage({
+            reason: 'Username And Password Not Matcherd',
+            field: 'Check and Verify your Username And Password.',
+            status: 404,
+          });
         }
+      } else {
+        return errorMessage({
+          reason: 'Username And Password Not Matcherd',
+          field: 'Check and Verify your Username And Password.',
+          status: 404,
+        });
       }
     } catch (e) {
       throw e;
     }
-    // return loginStatus;
+  }
+
+  async getToken({
+    userId,
+    roles,
+    email,
+  }: {
+    userId: number;
+    roles: string;
+    email: string;
+  }): Promise<Tokens> {
+    const jwtPayload: JwtPayload = { sub: userId, roles, email: email };
+    const [accressTocken, refreshToken] = [
+      await this.jwtService.signAsync(jwtPayload, {
+        secret: this.configService.get('ACCESS_SECRET_KEY'),
+        expiresIn: this.configService.get('ACCESS_SECRET_KEY_EXPIRE'),
+      }),
+      await this.jwtService.signAsync(jwtPayload, {
+        secret: this.configService.get('REFRESH_SECRET_KEY'),
+        expiresIn: this.configService.get('REFRESH_SECRET_KEY_EXPIRE'),
+      }),
+    ];
+    return { access_token: accressTocken, refresh_token: refreshToken };
+  }
+
+  async updateHashRefresh(userId: number, refreshToken: string) {
+    await this.userRepository.update(
+      { id: userId },
+      { hashRt: await bcrypt.hash(refreshToken, 10) },
+    );
   }
 }

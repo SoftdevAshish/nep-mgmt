@@ -26,3 +26,8 @@ export const emailPort = parseInt(process.env.MAIL_PORT);
 export const emailSecure = JSON.parse(process.env.MAIL_SECURE);
 export const emailUsername = process.env.MAIL_USERNAME;
 export const emailPassword = process.env.MAIL_PASSWORD;
+
+export const access_strategy = process.env.STRATEGY_ACCESS;
+export const refresh_strategy = process.env.STRATEGY_STRATEGY_REFRESH;
+
+export const metaKey = process.env.META_KEY;
