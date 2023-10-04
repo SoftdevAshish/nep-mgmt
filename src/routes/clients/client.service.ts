@@ -51,7 +51,6 @@ export class ClientService {
     } catch (e) {
       throw e;
     }
-    // return this.clientRepository.findBy({ id });
   }
 
   async getBySlug(slug: string) {
@@ -91,9 +90,13 @@ export class ClientService {
     }
   }
 
-  destroy(id: number) {
+  async destroy(id: number) {
     try {
-      return this.clientRepository.delete(id);
+      const client = await this.getById(id);
+      if (client) {
+        await this.clientRepository.delete(id);
+        return client;
+      }
     } catch (e) {
       throw e;
     }
