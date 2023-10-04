@@ -11,41 +11,105 @@ import {
 } from '@nestjs/common';
 import { ClientService } from './client.service';
 import { CreateClientDto } from './dtos/create.dto';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { successMessage } from '../../utils/response';
 
 @Controller('client')
+@ApiTags('Clients')
+@UseInterceptors(ClassSerializerInterceptor)
 export class ClientController {
   constructor(private clientService: ClientService) {}
 
-  @ApiOperation({ description: 'Get all Clients.' })
+  @ApiOperation({ summary: 'All Client', description: 'Get all Clients.' })
   @Get()
-  getAll() {
-    return this.clientService.getAll();
+  async getAll() {
+    try {
+      return successMessage({
+        message: 'Get All Client Details.',
+        data: await this.clientService.getAll(),
+      });
+    } catch (e) {
+      throw e;
+    }
   }
 
-  @UseInterceptors(ClassSerializerInterceptor)
-  @ApiOperation({ description: 'Create Clients' })
+  @ApiOperation({ summary: 'Save Client', description: 'Save Clients Details' })
   @Post()
-  create(@Body() clientDetails: CreateClientDto) {
-    return this.clientService.create(clientDetails);
+  async create(@Body() clientDetails: CreateClientDto) {
+    try {
+      return successMessage({
+        message: 'Client Created Successful',
+        data: await this.clientService.create(clientDetails),
+      });
+    } catch (e) {
+      throw e;
+    }
   }
 
-  @ApiOperation({ description: 'Get the client details By Id.' })
-  @UseInterceptors(ClassSerializerInterceptor)
+  @ApiOperation({
+    summary: 'Client Get By Id ',
+    description: 'Get the client details By Id.',
+  })
   @Get(':id')
-  getById(@Param('id') id: number) {
-    return this.clientService.getById(id);
+  async getById(@Param('id') id: number) {
+    try {
+      return successMessage({
+        data: await this.clientService.getById(id),
+        message: 'Get Client By Id',
+      });
+    } catch (e) {
+      throw e;
+    }
   }
 
-  @ApiOperation({ description: 'Update client details' })
+  @ApiOperation({
+    summary: 'Client Get By Id ',
+    description: 'Get the client details By Id.',
+  })
+  @Get(':slug')
+  async getBySlug(@Param('slug') slug: string) {
+    try {
+      return successMessage({
+        data: await this.clientService.getBySlug(slug),
+        message: 'Get Client By Id',
+      });
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  @ApiOperation({
+    summary: 'Update Client Details',
+    description: 'Update client details',
+  })
   @Put(':id')
-  update(@Param('id') id: number, @Body() clientDetails: CreateClientDto) {
-    return this.clientService.update(id, clientDetails);
+  async update(
+    @Param('id') id: number,
+    @Body() clientDetails: CreateClientDto,
+  ) {
+    try {
+      return successMessage({
+        message: 'Updated Client Details',
+        data: await this.clientService.update(id, clientDetails),
+      });
+    } catch (e) {
+      throw e;
+    }
   }
 
-  @ApiOperation({ description: 'Delete client details' })
+  @ApiOperation({
+    summary: 'Delete Client ',
+    description: 'Delete client details By id',
+  })
   @Delete(':id')
-  destroy(@Param('id') id: number) {
-    this.clientService.destroy(id);
+  async destroy(@Param('id') id: number) {
+    try {
+      return successMessage({
+        message: 'Deleted Client Details',
+        data: await this.clientService.destroy(id),
+      });
+    } catch (e) {
+      throw e;
+    }
   }
 }

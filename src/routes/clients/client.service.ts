@@ -1,7 +1,8 @@
-import { HttpException, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Client } from './entities/client.entity';
 import { ClientParam } from './types/index.type';
+import { errorMessage } from '../../utils/response';
 
 @Injectable()
 export class ClientService {
@@ -9,39 +10,92 @@ export class ClientService {
     @Inject('ClientRepo') private clientRepository: Repository<Client>,
   ) {}
 
-  getAll() {
-    return this.clientRepository.find();
+  async getAll() {
+    try {
+      return this.clientRepository.find();
+    } catch (e) {
+      throw e;
+    }
   }
 
-  create(clientDetails: ClientParam) {
-    return this.clientRepository.save(
-      this.clientRepository.create(clientDetails),
-    );
+  async create(clientDetails: ClientParam) {
+    try {
+      const clientSlug = await this.getBySlug(clientDetails.slug);
+      if (clientSlug) {
+        return errorMessage({
+          reason: 'Duplicate Slug please check and try unique.',
+          field: 'Check Slug Value',
+          status: 409,
+        });
+      } else {
+        return await this.clientRepository.save(
+          this.clientRepository.create(clientDetails),
+        );
+      }
+    } catch (e) {
+      throw e;
+    }
   }
 
-  getById(id: number) {
-    return this.clientRepository.findBy({ id });
+  async getById(id: number) {
+    try {
+      const client = await this.clientRepository.findOne({ where: { id } });
+      if (!client) {
+        return errorMessage({
+          reason: 'Client Not Found!',
+          field: 'Check and Verify Id First.',
+          status: 404,
+        });
+      }
+      return client;
+    } catch (e) {
+      throw e;
+    }
+    // return this.clientRepository.findBy({ id });
+  }
+
+  async getBySlug(slug: string) {
+    try {
+      const client = await this.clientRepository.findOne({ where: { slug } });
+      if (!client) {
+        return false;
+      }
+      return client;
+    } catch (e) {
+      throw e;
+    }
+    // return this.clientRepository.findBy({ id });
   }
 
   async update(id: number, clientDetails: ClientParam) {
-    const client = await this.clientRepository.find({
-      where: { id },
-    });
-    if (client.length > 0) {
-      const clientSlug = await this.clientRepository.find({
-        where: { slug: clientDetails.slug },
-      });
-
-      if (clientSlug.length > 0 && clientSlug[0].id !== client[0].id) {
-        throw new HttpException('Please Verify Your Client Details', 409);
+    try {
+      const client = await this.getById(id);
+      if (client) {
+        const clientSlug = await this.getBySlug(clientDetails.slug);
+        console.log(clientSlug, 'Clientslug');
+        if (clientSlug) {
+          if (clientSlug.id !== client.id) {
+            return errorMessage({
+              reason: 'Duplicate Slug please check and try unique.',
+              field: 'Check Slug Value',
+              status: 409,
+            });
+          }
+        } else {
+          await this.clientRepository.update(id, clientDetails);
+          return await this.getById(id);
+        }
       }
-      return this.clientRepository.update(id, clientDetails);
-    } else {
-      throw new HttpException('Client Not Found', 404);
+    } catch (e) {
+      throw e;
     }
   }
 
   destroy(id: number) {
-    return this.clientRepository.delete(id);
+    try {
+      return this.clientRepository.delete(id);
+    } catch (e) {
+      throw e;
+    }
   }
 }

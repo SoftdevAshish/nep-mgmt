@@ -8,12 +8,14 @@ import {
   swaggerVersion,
 } from '../config/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { NestExpressApplication } from '@nestjs/platform-express';
+import { ResponseTransformInterceptor } from './interceptors/response.transform.interceptor';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create(AppModule);
+  app.useGlobalInterceptors(new ResponseTransformInterceptor());
+
   app.enableCors();
-  app.setViewEngine('hbs');
+  // app.setViewEngine('hbs');
   const config = new DocumentBuilder()
     .setTitle(swaggerTitle)
     .setDescription(swaggerDescription)
