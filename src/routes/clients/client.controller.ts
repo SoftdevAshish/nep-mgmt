@@ -12,7 +12,7 @@ import {
 import { ClientService } from './client.service';
 import { CreateClientDto } from './dtos/create.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { successMessage } from '../../utils/response';
+import { errorMessage, successMessage } from '../../utils/response';
 
 @Controller('client')
 @ApiTags('Clients')
@@ -63,16 +63,25 @@ export class ClientController {
   }
 
   @ApiOperation({
-    summary: 'Client Get By Id ',
-    description: 'Get the client details By Id.',
+    summary: 'Client Get By Slug ',
+    description: 'Get the client details By Slug.',
   })
-  @Get(':slug')
+  @Get('slug/:slug')
   async getBySlug(@Param('slug') slug: string) {
     try {
-      return successMessage({
-        data: await this.clientService.getBySlug(slug),
-        message: 'Get Client By Id',
-      });
+      const slugData = await this.clientService.getBySlug(slug);
+      if (slugData) {
+        return successMessage({
+          data: await this.clientService.getBySlug(slug),
+          message: 'Get Client By Slug',
+        });
+      } else {
+        return errorMessage({
+          reason: 'Client Not Found',
+          field: 'Check Your Slug',
+          status: 404,
+        });
+      }
     } catch (e) {
       throw e;
     }

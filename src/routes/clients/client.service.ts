@@ -63,7 +63,6 @@ export class ClientService {
     } catch (e) {
       throw e;
     }
-    // return this.clientRepository.findBy({ id });
   }
 
   async update(id: number, clientDetails: ClientParam) {
