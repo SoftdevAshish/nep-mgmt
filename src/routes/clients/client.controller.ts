@@ -12,7 +12,8 @@ import {
 import { ClientService } from './client.service';
 import { CreateClientDto } from './dtos/create.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { errorMessage, successMessage } from '../../utils/response';
+import { errorMessage, successMessage } from '../../utils/responses';
+import {UpdateClientDto} from "./dtos/update.dto";
 
 @Controller('client')
 @ApiTags('Clients')
@@ -24,10 +25,10 @@ export class ClientController {
   @Get()
   async getAll() {
     try {
-      return successMessage({
-        message: 'Get All Client Details.',
-        data: await this.clientService.getAll(),
-      });
+      return successMessage(
+        'Get All Client Details.',
+        await this.clientService.getAll(),
+      );
     } catch (e) {
       throw e;
     }
@@ -37,10 +38,10 @@ export class ClientController {
   @Post()
   async create(@Body() clientDetails: CreateClientDto) {
     try {
-      return successMessage({
-        message: 'Client Created Successful',
-        data: await this.clientService.create(clientDetails),
-      });
+      return successMessage(
+        'Client Created Successful',
+        await this.clientService.create(clientDetails),
+      );
     } catch (e) {
       throw e;
     }
@@ -53,10 +54,10 @@ export class ClientController {
   @Get(':id')
   async getById(@Param('id') id: number) {
     try {
-      return successMessage({
-        data: await this.clientService.getById(id),
-        message: 'Get Client By Id',
-      });
+      return successMessage(
+          'Get Client By Id',
+          await this.clientService.getById(id),
+      );
     } catch (e) {
       throw e;
     }
@@ -71,16 +72,12 @@ export class ClientController {
     try {
       const slugData = await this.clientService.getBySlug(slug);
       if (slugData) {
-        return successMessage({
-          data: await this.clientService.getBySlug(slug),
-          message: 'Get Client By Slug',
-        });
+        return successMessage(
+          'Get Client By Slug',
+          await this.clientService.getBySlug(slug),
+        );
       } else {
-        return errorMessage({
-          reason: 'Client Not Found',
-          field: 'Check Your Slug',
-          status: 404,
-        });
+        return errorMessage('Client Not Found', 'Check Your Slug', 404);
       }
     } catch (e) {
       throw e;
@@ -94,13 +91,13 @@ export class ClientController {
   @Put(':id')
   async update(
     @Param('id') id: number,
-    @Body() clientDetails: CreateClientDto,
+    @Body() updateClientDetails: UpdateClientDto,
   ) {
     try {
-      return successMessage({
-        message: 'Updated Client Details',
-        data: await this.clientService.update(id, clientDetails),
-      });
+      return successMessage(
+        'Updated Client Details',
+        await this.clientService.update(id, updateClientDetails),
+      );
     } catch (e) {
       throw e;
     }
@@ -113,10 +110,10 @@ export class ClientController {
   @Delete(':id')
   async destroy(@Param('id') id: number) {
     try {
-      return successMessage({
-        message: 'Deleted Client Details',
-        data: await this.clientService.destroy(id),
-      });
+      return successMessage(
+        'Deleted Client Details',
+        await this.clientService.destroy(id),
+      );
     } catch (e) {
       throw e;
     }

@@ -1,15 +1,19 @@
 import { Module } from '@nestjs/common';
-import { DatabaseModule } from './commons/database/database.module';
 import { ClientsModule } from './routes/clients/clients.module';
-import { AuthModule } from './routes/auth/auth.module';
 import { MailModule } from './routes/mail/mail.module';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
-import { AccessGuard } from './commons/guards/access.guard';
+import {TypeOrmModule} from "@nestjs/typeorm";
+import {configService} from "./config/config.service";
+import {AppService} from "./app.service";
+import {RolesGuard} from "./helpers/roles.guard";
+import {JwtAuthGuard} from "./helpers/jwt/jwt-auth-guard";
+import {Role} from "./config/enums";
+import {AuthModule} from "./routes/auth/auth.module";
 
 @Module({
   imports: [
-    DatabaseModule,
+    TypeOrmModule.forRoot(configService.getTypeOrmConfig(process.env.MODE)),
     ClientsModule,
     AuthModule,
     MailModule,
@@ -18,6 +22,20 @@ import { AccessGuard } from './commons/guards/access.guard';
     }),
   ],
   // controllers: [AppController],
-  providers: [{ provide: APP_GUARD, useClass: AccessGuard }],
+  providers: [
+    {
+      provide: 'ROLES',
+      useValue: Role,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+    AppService,
+  ],
 })
 export class AppModule {}

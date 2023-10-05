@@ -9,18 +9,16 @@ import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 import { SystemTypes } from '../../enum/systemtypes.enum';
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude } from 'class-transformer';
+import CommonColumns from "../../../helpers/CommonColumns";
 
 @Entity({ name: 'clients' })
-export class Client {
-  @PrimaryGeneratedColumn()
-  id: number;
+export class Client extends CommonColumns{
 
-  @ApiProperty()
+
   @Column()
   @IsNotEmpty()
   clientName: string;
 
-  @ApiProperty()
   @Column({ type: 'datetime' })
   clientContractDate: Date;
 
@@ -28,17 +26,14 @@ export class Client {
   @Column({ type: 'datetime' })
   clientExpiryDate: Date;
 
-  @ApiProperty()
   @Column({ unique: true })
   @IsNotEmpty()
   @IsString()
   slug: string;
 
-  @ApiProperty()
   @Column({ default: true })
   active: boolean;
 
-  @ApiProperty()
   @Column({
     type: 'enum',
     enum: SystemTypes,
@@ -46,7 +41,6 @@ export class Client {
   })
   systemType: string;
 
-  @ApiProperty()
   @Column()
   @IsEmail()
   @IsNotEmpty()
@@ -57,11 +51,5 @@ export class Client {
   @IsNotEmpty()
   phone: string;
 
-  @Exclude()
-  @CreateDateColumn()
-  created_at: Date;
 
-  @Exclude()
-  @UpdateDateColumn()
-  updated_at: Date;
 }

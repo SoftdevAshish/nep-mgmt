@@ -1,24 +1,34 @@
 import { Module } from '@nestjs/common';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
-import { DatabaseModule } from '../../commons/database/database.module';
-import { userProviders } from './user.providers';
-import { MailModule } from '../mail/mail.module';
-import { EmailService } from '../mail/email.service';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule } from '@nestjs/config';
-import { AccessStrategy } from './strategies/access.strategy';
-import { RefreshStrategy } from './strategies/refresh.strategy';
+import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { PassportModule } from "@nestjs/passport";
+import { Private, Time } from "../../config/keys";
+import { APP_GUARD } from "@nestjs/core";
+import { JwtStrategy } from "../../helpers/jwt/jwt.strategy";
+import { RoleEntity } from "../role/entities/role.entity";
+import { UuidEntity } from './entities/uuid.entity';
+import {User} from "./entities/user.entity";
+import {JwtAuthGuard} from "../../helpers/jwt/jwt-auth-guard";
 
 @Module({
-  imports: [DatabaseModule, MailModule, JwtModule.register({}), ConfigModule],
+  imports:[TypeOrmModule.forFeature([User,RoleEntity, UuidEntity, ]),
+    PassportModule,
+    JwtModule.register({
+      secret: Private,
+      signOptions: { expiresIn: Time },
+    }),
+  ],
   controllers: [AuthController],
   providers: [
-    ...userProviders,
     AuthService,
-    EmailService,
-    AccessStrategy,
-    RefreshStrategy,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    JwtStrategy,
   ],
+  exports: [AuthService, JwtModule],
 })
 export class AuthModule {}

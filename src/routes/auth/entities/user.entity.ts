@@ -2,7 +2,7 @@ import {
   BeforeInsert,
   Column,
   CreateDateColumn,
-  Entity,
+  Entity, JoinTable, ManyToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -10,25 +10,21 @@ import { IsEmail, IsNotEmpty } from 'class-validator';
 import { Roles } from '../../enum/roles.enum';
 import * as bcrypt from 'bcrypt';
 import { Exclude } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
+import CommonColumns from '../../../helpers/CommonColumns';
+
+import {RoleEntity} from "../../role/entities/role.entity";
 
 @Entity({ name: 'users' })
-export class User {
-  @Exclude()
-  @PrimaryGeneratedColumn()
-  id: number;
+export class User extends CommonColumns{
 
   @Column()
   @IsNotEmpty()
-  @ApiProperty({ description: 'User Fullname' })
   name: string;
 
   @Column({ unique: true })
   @IsEmail()
-  @ApiProperty({ description: 'User Email' })
   email: string;
 
-  @ApiProperty({ description: 'User Phone Number' })
   @Column({ unique: true })
   phone: string;
 
@@ -37,12 +33,10 @@ export class User {
   @IsNotEmpty()
   password: string;
 
-  @Column({
-    type: 'enum',
-    enum: Roles,
-    default: Roles.viewer,
-  })
-  role: Roles;
+  //many user can have many roles
+  @ManyToMany(() => RoleEntity, (role) => role.users,{cascade:true})
+  @JoinTable()
+  roles: RoleEntity[];
 
   @Exclude()
   @Column({ default: true })
@@ -51,14 +45,6 @@ export class User {
   @Exclude()
   @Column({ nullable: true })
   hashRt: string;
-
-  @Exclude()
-  @CreateDateColumn()
-  created_at: Date;
-
-  @Exclude()
-  @UpdateDateColumn()
-  updated_at: Date;
 
   @BeforeInsert()
   async hashPassword() {

@@ -1,35 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 import { SystemTypes } from '../../enum/systemtypes.enum';
+import {PartialType} from "@nestjs/mapped-types";
+import {CreateClientDto} from "./create.dto";
 
-export class UpdateClientDto {
-  @ApiProperty()
-  @IsNotEmpty()
-  clientName: string;
+export class UpdateClientDto extends PartialType(CreateClientDto){
 
-  @ApiProperty()
-  clientContractDate: Date;
-
-  @ApiProperty()
-  clientExpiryDate: Date;
-
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
-  slug: string;
-
-  @ApiProperty()
-  active: boolean;
-
-  @ApiProperty()
-  systemType: SystemTypes;
-
-  @ApiProperty()
-  @IsEmail()
-  @IsNotEmpty()
-  clientEmail: string;
-
-  @ApiProperty()
-  @IsNotEmpty()
-  phone: string;
 }

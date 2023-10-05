@@ -2,12 +2,15 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Client } from './entities/client.entity';
 import { ClientParam } from './types/index.type';
-import { errorMessage } from '../../utils/response';
+import { InjectRepository } from '@nestjs/typeorm';
+import { errorMessage } from '../../utils/responses';
+import {CreateClientDto} from "./dtos/create.dto";
+import {UpdateClientDto} from "./dtos/update.dto";
 
 @Injectable()
 export class ClientService {
   constructor(
-    @Inject('ClientRepo') private clientRepository: Repository<Client>,
+    @InjectRepository(Client) private clientRepository: Repository<Client>,
   ) {}
 
   async getAll() {
@@ -18,15 +21,15 @@ export class ClientService {
     }
   }
 
-  async create(clientDetails: ClientParam) {
+  async create(clientDetails: CreateClientDto) {
     try {
       const clientSlug = await this.getBySlug(clientDetails.slug);
       if (clientSlug) {
-        return errorMessage({
-          reason: 'Duplicate Slug please check and try unique.',
-          field: 'Check Slug Value',
-          status: 409,
-        });
+        return errorMessage(
+          'Duplicate Slug please check and try unique.',
+          'Check Slug Value',
+          409,
+        );
       } else {
         return await this.clientRepository.save(
           this.clientRepository.create(clientDetails),
@@ -38,19 +41,8 @@ export class ClientService {
   }
 
   async getById(id: number) {
-    try {
-      const client = await this.clientRepository.findOne({ where: { id } });
-      if (!client) {
-        return errorMessage({
-          reason: 'Client Not Found!',
-          field: 'Check and Verify Id First.',
-          status: 404,
-        });
-      }
-      return client;
-    } catch (e) {
-      throw e;
-    }
+    const client = await this.clientRepository.findOneOrFail(id);
+    return client;
   }
 
   async getBySlug(slug: string) {
@@ -65,31 +57,22 @@ export class ClientService {
     }
   }
 
-  async update(id: number, clientDetails: ClientParam) {
-    try {
-      const client = await this.getById(id);
-      if (client) {
-        const clientSlug = await this.getBySlug(clientDetails.slug);
-        if (clientSlug) {
-          if (clientSlug.id !== client.id) {
-            return errorMessage({
-              reason: 'Duplicate Slug please check and try unique.',
-              field: 'Check Slug Value',
-              status: 409,
-            });
-          }
-          if (clientSlug.id === client.id) {
-            await this.clientRepository.update(id, clientDetails);
-            return await this.getById(id);
-          }
-        } else {
-          await this.clientRepository.update(id, clientDetails);
-          return await this.getById(id);
-        }
-      }
-    } catch (e) {
-      throw e;
-    }
+  //todo change
+  async update(id: number, clientDetails: UpdateClientDto) {
+      const gotClient = await this.clientRepository.findOneOrFail(id);
+      const {clientName,clientContractDate,clientExpiryDate,slug,active,systemType,clientEmail,phone} = clientDetails;
+      const query = await this.clientRepository.createQueryBuilder('client');
+      const checkClient = query.
+      where('slug:slug',{slug})
+          .andWhere('id:id',{id})
+          .getOneOrFail();
+
+
+      gotClient.clientContractDate = clientContractDate;
+
+
+
+
   }
 
   async destroy(id: number) {

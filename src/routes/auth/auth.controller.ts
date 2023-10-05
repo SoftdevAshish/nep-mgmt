@@ -1,36 +1,72 @@
 import {
-  Body,
   Controller,
+  Get,
   Post,
-  UsePipes,
-  ValidationPipe,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { AuthLoginDto } from './dtos/AuthLogin.dto';
-import { AuthDto } from './dtos/auth.dto';
-import { Public } from '../../commons/decorators/public.decorator';
+import { errorMessage, successMessage } from '../../utils/responses';
+import {
+  ApiBearerAuth,
+  ApiHeader,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
+import { Public } from '../../config/keys';
+import { LoginUserDto } from './dto/loginUserDto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { User } from '../../decorators/user.decorators';
+import { Request } from 'express';
+import {CreateUserDto} from "./dto/create-user.dto";
 
-@ApiTags('Users Control')
+@ApiTags('Nepvent Management Authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
-
-  @UsePipes(new ValidationPipe())
-  @Public()
-  @Post('login')
-  signIn(@Body() userDetails: AuthLoginDto) {
-    return this.authService.login(userDetails);
+  constructor(private readonly authService: AuthService) {
   }
 
+  @Public()
   @ApiOperation({
-    summary: `Create User.`,
-    description: `Create User and sending mail with password after register`,
+    summary: `Create new User.`,
   })
-  @Public()
-  // @UseGuards(AccessGuard)
-  @Post('register')
-  signUp(@Body() userDetails: AuthDto) {
-    return this.authService.register(userDetails);
+  @Post('/register')
+  create(@Body() createUserDto: CreateUserDto) {
+    return this.authService.createUser(createUserDto);
   }
+
+  @Public()
+  @ApiOperation({
+    summary: `Login  User.`,
+  })
+  @Post('login')
+  async login(@Body() loginUserDto: LoginUserDto) {
+    try {
+      const gotUser = await this.authService.compareUser(loginUserDto);
+      if (!gotUser) errorMessage('Invalid username or password', 'username');
+      const token = await this.authService.generateJWT(gotUser);
+      const {
+        email,
+        name,
+        phone,
+        roles,
+        id,
+      } = gotUser;
+      const user = {
+        id,
+        email,
+        name,
+        phone,
+        roles,
+      };
+      return successMessage('Login Successful', user);
+    } catch (err) {
+      throw err;
+    }
+  }
+
+
 }
